@@ -4,10 +4,25 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 def create_directory(directory_path):
+    """
+    Create a directory if it doesn't exist.
+
+    Args:
+    - directory_path (str): Path of the directory to be created.
+    """
     if not os.path.exists(directory_path):
         os.makedirs(directory_path)
 
 def load_csv(file_path):
+    """
+    Load CSV file into a pandas DataFrame.
+
+    Args:
+    - file_path (str): Path to the CSV file.
+
+    Returns:
+    - pd.DataFrame or None: Loaded DataFrame if successful, None if an error occurs.
+    """
     try:
         data = pd.read_csv(file_path)
         print(f"Data from {file_path} successfully loaded")
@@ -17,6 +32,15 @@ def load_csv(file_path):
         return None
 
 def clean_and_transform_data(data):
+    """
+    Perform cleaning and transformation on the data.
+
+    Args:
+    - data (pd.DataFrame): Input DataFrame.
+
+    Returns:
+    - pd.DataFrame: Cleaned and transformed DataFrame.
+    """
     # Handle missing values
     data = data.dropna()
 
@@ -37,24 +61,40 @@ def clean_and_transform_data(data):
     return data
 
 def exploratory_data_analysis(data):
-    # Plot distributions
+    """
+    Perform exploratory data analysis (EDA) on the data.
+
+    Args:
+    - data (pd.DataFrame): Input DataFrame for EDA.
+    """
+    # Plot distributions of numerical columns
     for col in data.select_dtypes(include=['number']).columns:
         plt.figure(figsize=(10, 6))
         sns.histplot(data[col], kde=True)
         plt.title(f'Distribution of {col}')
         plt.show()
 
-    # Plot correlations
+    # Plot correlation matrix
     plt.figure(figsize=(12, 8))
     sns.heatmap(data.corr(), annot=True, cmap='coolwarm')
     plt.title('Correlation Matrix')
     plt.show()
 
 def save_processed_data(data, file_path):
+    """
+    Save processed data to a CSV file.
+
+    Args:
+    - data (pd.DataFrame): Processed DataFrame.
+    - file_path (str): Path to save the CSV file.
+    """
     data.to_csv(file_path, index=False)
     print(f"Processed data saved to {file_path}")
 
 def main():
+    """
+    Main function to execute data preprocessing and EDA workflow.
+    """
     # Define file paths
     raw_data_directory = 'data/raw/'
     processed_data_directory = 'data/processed/'
