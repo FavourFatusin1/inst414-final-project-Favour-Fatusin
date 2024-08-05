@@ -1,48 +1,60 @@
-import os
+import requests
+from bs4 import BeautifulSoup
 import pandas as pd
+import os
+from io import StringIO
 
-def create_directory(directory_path):
-    """
-    Create a directory if it doesn't exist.
+# Directory to save the raw data
+output_dir = 'data'
+if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
 
-    Args:
-    - directory_path (str): Path of the directory to be created.
-    """
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+def extract_table(url, file_name, table_index=0):
+    # Send a GET request to the page
+    response = requests.get(url)
 
-def load_and_save_csv(file_path, save_directory):
-    """
-    Load CSV file from `file_path` and save it to `save_directory`.
+    # Check if the request was successful
+    if response.status_code == 200:
+        html_content = response.text
+    else:
+        raise Exception(f"Failed to retrieve the page from {url}. Status code: {response.status_code}")
 
-    Args:
-    - file_path (str): Path to the CSV file to load.
-    - save_directory (str): Directory to save the loaded DataFrame as a CSV file.
-    """
-    try:
-        data = pd.read_csv(file_path)
-        file_name = os.path.basename(file_path)
-        save_path = os.path.join(save_directory, file_name)
-        data.to_csv(save_path, index=False)
-        print(f"Data from {file_name} successfully loaded and saved to {save_path}")
-    except Exception as e:
-        print(f"Error loading {file_path}: {e}")
+    # Parse the HTML content
+    soup = BeautifulSoup(html_content, 'html.parser')
 
-def main():
-    """
-    Main function to execute the data loading and saving workflow.
-    """
-    # Define file paths and directories
-    files_to_extract = ['creditcard.csv', 'creditcard_2023.csv']
-    raw_data_directory = 'data/raw/'
+    # Find all tables
+    tables = soup.find_all('table')
 
-    # Create the raw data directory if it doesn't exist
-    create_directory(raw_data_directory)
+    # Ensure we have the right number of tables
+    if len(tables) <= table_index:
+        raise Exception(f"Table index {table_index} is out of range for the page {url}.")
 
-    # Load and save each CSV file
-    for file in files_to_extract:
-        file_path = os.path.join(raw_data_directory, file)
-        load_and_save_csv(file_path, raw_data_directory)
+    # Convert the chosen table to a DataFrame
+    table_html = str(tables[table_index])
+    df = pd.read_html(StringIO(table_html))[0]
 
-if __name__ == "__main__":
-    main()
+    # Define the file path
+    file_path = os.path.join(output_dir, file_name)
+
+    # Save the DataFrame to a CSV file
+    df.to_csv(file_path, index=False)
+
+    print(f"Data successfully extracted and saved to {file_path}")
+
+# Define sources with their specific table indices
+sources = [
+    {
+        'url': 'https://www.fool.com/the-ascent/research/identity-theft-credit-card-fraud-statistics/',
+        'file_name': 'statistic1.csv',
+        'table_index': 0  # Adjust this index if the table you need is not the first one
+    },
+    {
+        'url': 'https://www.bankrate.com/credit-cards/news/credit-card-fraud-statistics/#fraud',
+        'file_name': 'statistic2.csv',
+        'table_index': 0  # Adjust this index if the table you need is not the first one
+    }
+]
+
+# Extract and save tables
+for source in sources:
+    extract_table(source['url'], source['file_name'], source['table_index'])
