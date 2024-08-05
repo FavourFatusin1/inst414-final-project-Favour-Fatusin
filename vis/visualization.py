@@ -1,88 +1,55 @@
-import os
 import pandas as pd
-import seaborn as sns
 import matplotlib.pyplot as plt
+import seaborn as sns
+import os
 
-def create_directory(directory_path):
-    """
-    Create a directory if it doesn't exist.
+# Define file paths
+transformed_file_path1 = 'data/outputs/transformed_statistic1.csv'
+transformed_file_path2 = 'data/outputs/transformed_statistic2.csv'
 
-    Args:
-    - directory_path (str): Path of the directory to be created.
-    """
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+# Load the transformed data into DataFrames
+df1 = pd.read_csv(transformed_file_path1)
+df2 = pd.read_csv(transformed_file_path2)
 
-def load_analyzed_data(file_path):
-    """
-    Load analyzed data from a CSV file.
+# Ensure the 'outputs' directory for plots exists
+os.makedirs('data/outputs/plots', exist_ok=True)
 
-    Args:
-    - file_path (str): Path to the CSV file.
+# Example visualizations for df1
+plt.figure(figsize=(10, 6))
+sns.histplot(df1['identity_theft_reports'], kde=True)
+plt.title('Distribution of Identity Theft Reports in Statistic1')
+plt.xlabel('Identity Theft Reports')
+plt.ylabel('Frequency')
+plt.savefig('data/outputs/df1_distribution.png')
+plt.show()  # Display the plot
+plt.close()
 
-    Returns:
-    - pd.DataFrame or None: Loaded DataFrame if successful, None if an error occurs.
-    """
-    try:
-        data = pd.read_csv(file_path)
-        print(f"Data from {file_path} successfully loaded")
-        return data
-    except Exception as e:
-        print(f"Error loading {file_path}: {e}")
-        return None
+plt.figure(figsize=(10, 6))
+sns.boxplot(x='year', y='identity_theft_reports', data=df1)
+plt.title('Boxplot of Identity Theft Reports by Year in Statistic1')
+plt.xlabel('Year')
+plt.ylabel('Identity Theft Reports')
+plt.savefig('data/outputs/df1_boxplot.png')
+plt.show()  # Display the plot
+plt.close()
 
-def plot_confusion_matrix(conf_matrix, title):
-    """
-    Plot a confusion matrix.
+# Example visualizations for df2
+plt.figure(figsize=(10, 6))
+sns.histplot(df2['amount_(in_billions)'], kde=True)
+plt.title('Distribution of Amount (in Billions) in Statistic2')
+plt.xlabel('Amount (in Billions)')
+plt.ylabel('Frequency')
+plt.savefig('data/outputs/df2_distribution.png')
+plt.show()  # Display the plot
+plt.close()
 
-    Args:
-    - conf_matrix (pd.DataFrame): Confusion matrix DataFrame.
-    - title (str): Title for the plot.
-    """
-    plt.figure(figsize=(10, 6))
-    sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
-    plt.xlabel('Predicted')
-    plt.ylabel('Actual')
-    plt.title(title)
-    plt.show()
+plt.figure(figsize=(10, 6))
+sns.scatterplot(x='year', y='amount_(in_billions)', data=df2)
+plt.title('Scatter Plot of Amount (in Billions) vs. Year in Statistic2')
+plt.xlabel('Year')
+plt.ylabel('Amount (in Billions)')
+plt.savefig('data/outputs/df2_scatter.png')
+plt.show()  # Display the plot
+plt.close()
 
-def plot_class_distribution(data, title):
-    """
-    Plot class distribution.
-
-    Args:
-    - data (pd.DataFrame): DataFrame containing 'Actual' and 'Predicted' columns.
-    - title (str): Title for the plot.
-    """
-    plt.figure(figsize=(10, 6))
-    sns.countplot(data=data, x='Actual')
-    plt.title(title)
-    plt.show()
-
-def main():
-    """
-    Main function to execute the visualization workflow.
-    """
-    # Define file paths
-    analyzed_data_directory = '../data/analyzed/'
-    files_to_visualize = ['creditcard.csv', 'creditcard_2023.csv']
-
-    # Create the visualization directory if it doesn't exist
-    visualization_directory = '../visualizations/'
-    create_directory(visualization_directory)
-
-    # Visualize each file
-    for file in files_to_visualize:
-        file_path = os.path.join(analyzed_data_directory, file)
-        data = load_analyzed_data(file_path)
-
-        if data is not None:
-            # Plot class distribution
-            plot_class_distribution(data, f"Class Distribution - {file}")
-
-            # Plot confusion matrix
-            conf_matrix = pd.crosstab(data['Actual'], data['Predicted'], rownames=['Actual'], colnames=['Predicted'])
-            plot_confusion_matrix(conf_matrix, f"Confusion Matrix - {file}")
-
-if __name__ == "__main__":
-    main()
+print("\nVisualizations successfully created and saved in 'data/outputs/plots'")
