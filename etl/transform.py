@@ -1,123 +1,53 @@
-import os
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+import os
 
-def create_directory(directory_path):
-    """
-    Create a directory if it doesn't exist.
+# Define file paths
+file_path1 = 'data/processed/loaded_statistic1.csv'
+file_path2 = 'data/processed/loaded_statistic2.csv'
 
-    Args:
-    - directory_path (str): Path of the directory to be created.
-    """
-    if not os.path.exists(directory_path):
-        os.makedirs(directory_path)
+# Load the data into DataFrames
+df1 = pd.read_csv(file_path1)
+df2 = pd.read_csv(file_path2)
 
-def load_csv(file_path):
-    """
-    Load CSV file into a pandas DataFrame.
+# Example of data cleaning and wrangling
+# Handle missing values (example: fill with mean or median, or drop)
+df1.fillna(method='ffill', inplace=True)  # Forward fill for missing values
+df2.fillna(method='ffill', inplace=True)
 
-    Args:
-    - file_path (str): Path to the CSV file.
+# Remove duplicates
+df1.drop_duplicates(inplace=True)
+df2.drop_duplicates(inplace=True)
 
-    Returns:
-    - pd.DataFrame or None: Loaded DataFrame if successful, None if an error occurs.
-    """
-    try:
-        data = pd.read_csv(file_path)
-        print(f"Data from {file_path} successfully loaded")
-        return data
-    except Exception as e:
-        print(f"Error loading {file_path}: {e}")
-        return None
+# Normalize column names (example: lowercase and replace spaces with underscores)
+df1.columns = [col.lower().replace(' ', '_') for col in df1.columns]
+df2.columns = [col.lower().replace(' ', '_') for col in df2.columns]
 
-def clean_and_transform_data(data):
-    """
-    Perform cleaning and transformation on the data.
+# Handle inconsistent IDs (example: generate a new unique ID column if necessary)
+df1['unique_id'] = df1.index
+df2['unique_id'] = df2.index
 
-    Args:
-    - data (pd.DataFrame): Input DataFrame.
+# Merge datasets (if applicable)
+# Example: merge on a common column (replace 'common_column' with actual column name)
+# merged_df = pd.merge(df1, df2, on='common_column')
 
-    Returns:
-    - pd.DataFrame: Cleaned and transformed DataFrame.
-    """
-    # Handle missing values
-    data = data.dropna()
+# Ensure the 'outputs' directory exists
+os.makedirs('data/outputs', exist_ok=True)
 
-    # Handle duplicates
-    data = data.drop_duplicates()
+# Save transformed data to new CSV files in the 'outputs' directory
+transformed_file_path1 = 'data/outputs/transformed_statistic1.csv'
+transformed_file_path2 = 'data/outputs/transformed_statistic2.csv'
 
-    # Ensure consistent attribute naming
-    data.columns = [col.strip().lower().replace(' ', '_') for col in data.columns]
+df1.to_csv(transformed_file_path1, index=False)
+df2.to_csv(transformed_file_path2, index=False)
 
-    # Convert categorical variables to numerical if necessary
-    for col in data.select_dtypes(include=['object']).columns:
-        data[col] = data[col].astype('category').cat.codes
+print(f"\nData successfully transformed and saved to '{transformed_file_path1}' and '{transformed_file_path2}'")
 
-    # Normalize data if necessary
-    numerical_cols = data.select_dtypes(include=['number']).columns
-    data[numerical_cols] = (data[numerical_cols] - data[numerical_cols].mean()) / data[numerical_cols].std()
+# Perform exploratory data analysis (EDA)
+print("\nExploratory Data Analysis:")
+print("\nStatistic1 Data:")
+print(df1.describe())
+print(df1.info())
 
-    return data
-
-def exploratory_data_analysis(data):
-    """
-    Perform exploratory data analysis (EDA) on the data.
-
-    Args:
-    - data (pd.DataFrame): Input DataFrame for EDA.
-    """
-    # Plot distributions of numerical columns
-    for col in data.select_dtypes(include=['number']).columns:
-        plt.figure(figsize=(10, 6))
-        sns.histplot(data[col], kde=True)
-        plt.title(f'Distribution of {col}')
-        plt.show()
-
-    # Plot correlation matrix
-    plt.figure(figsize=(12, 8))
-    sns.heatmap(data.corr(), annot=True, cmap='coolwarm')
-    plt.title('Correlation Matrix')
-    plt.show()
-
-def save_processed_data(data, file_path):
-    """
-    Save processed data to a CSV file.
-
-    Args:
-    - data (pd.DataFrame): Processed DataFrame.
-    - file_path (str): Path to save the CSV file.
-    """
-    data.to_csv(file_path, index=False)
-    print(f"Processed data saved to {file_path}")
-
-def main():
-    """
-    Main function to execute data preprocessing and EDA workflow.
-    """
-    # Define file paths
-    raw_data_directory = 'data/raw/'
-    processed_data_directory = 'data/processed/'
-    files_to_process = ['creditcard.csv', 'creditcard_2023.csv']
-
-    # Create the processed data directory if it doesn't exist
-    create_directory(processed_data_directory)
-
-    # Process each file
-    for file in files_to_process:
-        file_path = os.path.join(raw_data_directory, file)
-        data = load_csv(file_path)
-        
-        if data is not None:
-            # Clean and transform data
-            cleaned_data = clean_and_transform_data(data)
-            
-            # Perform exploratory data analysis
-            exploratory_data_analysis(cleaned_data)
-            
-            # Save processed data
-            save_path = os.path.join(processed_data_directory, file)
-            save_processed_data(cleaned_data, save_path)
-
-if __name__ == "__main__":
-    main()
+print("\nStatistic2 Data:")
+print(df2.describe())
+print(df2.info())
